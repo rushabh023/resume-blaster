@@ -7,7 +7,11 @@
   <meta name="description" content="Send your resume to hundreds of HR emails in one click. Free. Sign in with Google." />
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://accounts.google.com/gsi/client" async defer></script>
-  <script src="config.js"></script>
+  <script>
+    window.RESUME_BLASTER_CONFIG = {
+      GOOGLE_CLIENT_ID: '114045715633-jmosl0rg73ehnfcbkce79k82k8nmecrb.apps.googleusercontent.com'
+    };
+  </script>
   <style>
     .drop-zone.dragover { border-color: #3b82f6; background: rgba(59,130,246,0.1); }
     .invalid-email { background: rgba(239,68,68,0.15); border-color: #ef4444; }

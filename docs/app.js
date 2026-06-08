@@ -180,6 +180,12 @@
       $('signInBtn').disabled = true;
       return;
     }
+    $('configBanner').classList.add('hidden');
+
+    if (typeof google === 'undefined' || !google.accounts?.oauth2) {
+      setTimeout(initGoogleAuth, 200);
+      return;
+    }
 
     tokenClient = google.accounts.oauth2.initTokenClient({
       client_id: CLIENT_ID,
@@ -478,5 +484,13 @@
   updatePreview();
   updateRecipientUI();
   updateAuthUI();
-  initGoogleAuth();
+
+  function boot() {
+    if (typeof google === 'undefined' || !google.accounts?.oauth2) {
+      setTimeout(boot, 100);
+      return;
+    }
+    initGoogleAuth();
+  }
+  boot();
 })();
