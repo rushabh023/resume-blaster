@@ -1,5 +1,7 @@
 # Resume Blaster — Free Bulk Resume Email Sender
 
+🌐 **Live site:** [https://rushabh023.github.io/resume-blaster/](https://rushabh023.github.io/resume-blaster/)
+
 Send your resume to multiple HR emails in one click. **100% free.** No paid APIs. No subscriptions.
 
 Each person runs it on **their own computer** with **their own Gmail** — your password never leaves your PC.

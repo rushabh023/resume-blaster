@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Resume Blaster — Free Bulk Resume Sender</title>
+  <meta name="description" content="Send your resume to hundreds of HR emails in one click. 100% free. Runs on your PC." />
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-slate-900 text-slate-100 min-h-screen">
+
+  <header class="border-b border-slate-700 bg-slate-800/90 backdrop-blur sticky top-0 z-10">
+    <div class="max-w-4xl mx-auto px-4 py-4 flex items-center justify-between">
+      <h1 class="text-xl font-bold">📧 Resume Blaster</h1>
+      <a href="https://github.com/rushabh023/resume-blaster" class="text-sm text-blue-400 hover:underline" target="_blank">GitHub</a>
+    </div>
+  </header>
+
+  <main class="max-w-4xl mx-auto px-4 py-12 space-y-12">
+
+    <section class="text-center space-y-4">
+      <p class="text-green-400 text-sm font-medium">100% Free · No subscriptions · PDF attachments</p>
+      <h2 class="text-4xl sm:text-5xl font-bold leading-tight">Send your resume to<br><span class="text-blue-400">100s of HR emails</span> in one click</h2>
+      <p class="text-slate-400 max-w-xl mx-auto">Runs on your computer. Your Gmail, your password, your data — nothing stored on our servers.</p>
+      <div class="flex flex-wrap gap-4 justify-center pt-4">
+        <a href="https://github.com/rushabh023/resume-blaster/archive/refs/heads/main.zip"
+           class="px-8 py-4 bg-blue-600 hover:bg-blue-500 rounded-xl font-bold text-lg shadow-lg shadow-blue-900/50">
+          ⬇ Download for Windows
+        </a>
+        <a href="setup-guide.html"
+           class="px-8 py-4 border border-slate-600 hover:bg-slate-800 rounded-xl font-semibold">
+          📖 Setup Guide (with photos)
+        </a>
+      </div>
+    </section>
+
+    <section class="grid sm:grid-cols-3 gap-4">
+      <div class="bg-slate-800 border border-slate-700 rounded-xl p-5 text-center">
+        <p class="text-3xl mb-2">💰</p>
+        <h3 class="font-semibold mb-1">Zero cost</h3>
+        <p class="text-xs text-slate-400">No paid APIs. Uses your free Gmail.</p>
+      </div>
+      <div class="bg-slate-800 border border-slate-700 rounded-xl p-5 text-center">
+        <p class="text-3xl mb-2">📎</p>
+        <h3 class="font-semibold mb-1">PDF attached</h3>
+        <p class="text-xs text-slate-400">Resume sent as attachment to every HR.</p>
+      </div>
+      <div class="bg-slate-800 border border-slate-700 rounded-xl p-5 text-center">
+        <p class="text-3xl mb-2">🔒</p>
+        <h3 class="font-semibold mb-1">Private</h3>
+        <p class="text-xs text-slate-400">Password stays on your PC only.</p>
+      </div>
+    </section>
+
+    <section class="bg-slate-800 border border-slate-700 rounded-xl p-6">
+      <h3 class="text-lg font-semibold mb-4">How to use (3 steps)</h3>
+      <ol class="space-y-4 text-sm text-slate-300">
+        <li class="flex gap-4">
+          <span class="w-8 h-8 shrink-0 rounded-full bg-blue-600 flex items-center justify-center font-bold">1</span>
+          <div>
+            <strong>Download & install Python</strong><br>
+            <a href="https://github.com/rushabh023/resume-blaster/archive/refs/heads/main.zip" class="text-blue-400 underline">Download ZIP</a>,
+            unzip, install <a href="https://www.python.org/downloads/" class="text-blue-400 underline" target="_blank">Python 3</a> (check "Add to PATH")
+          </div>
+        </li>
+        <li class="flex gap-4">
+          <span class="w-8 h-8 shrink-0 rounded-full bg-blue-600 flex items-center justify-center font-bold">2</span>
+          <div>
+            <strong>Create Gmail App Password</strong> (one time, 5 min)<br>
+            <a href="setup-guide.html" class="text-blue-400 underline">Open setup guide with photos →</a>
+          </div>
+        </li>
+        <li class="flex gap-4">
+          <span class="w-8 h-8 shrink-0 rounded-full bg-blue-600 flex items-center justify-center font-bold">3</span>
+          <div>
+            <strong>Run & send</strong><br>
+            Double-click <code class="bg-slate-700 px-1 rounded">start.bat</code> → open
+            <code class="bg-slate-700 px-1 rounded">http://localhost:8765</code> → click Send to All
+          </div>
+        </li>
+      </ol>
+    </section>
+
+    <section class="bg-yellow-900/20 border border-yellow-700 rounded-xl p-5 text-sm text-yellow-200">
+      <strong>Note:</strong> This website is the download & setup guide. The app runs on <em>your</em> computer (not in the cloud) so your Gmail password stays safe. After download, use <code class="bg-slate-800 px-1 rounded">start.bat</code> — not this website URL — to send emails.
+    </section>
+
+    <p class="text-center text-xs text-slate-500 pb-8">
+      Made with ❤️ for job seekers ·
+      <a href="https://github.com/rushabh023/resume-blaster" class="text-blue-400 underline" target="_blank">Star on GitHub</a>
+    </p>
+
+  </main>
+</body>
+</html>
