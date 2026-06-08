@@ -1,0 +1,25 @@
+{
+  "sender": {
+    "email": "you@gmail.com",
+    "app_password": "your16charapppassword"
+  },
+  "subject": "Job Application — interested in {company}",
+  "body": "Dear Hiring Manager at {company},\n\nI am writing to express my interest in opportunities at {company}. Please find my resume attached for your review.\n\nBest regards",
+  "delay_seconds": 1,
+  "resume": {
+    "filename": "resume.pdf",
+    "base64": "BASE64_ENCODED_PDF_CONTENT_HERE"
+  },
+  "recipients": [
+    {
+      "email": "hr@acme.com",
+      "name": "Jane Doe",
+      "company": "Acme Corp"
+    },
+    {
+      "email": "recruiting@startup.io",
+      "name": "",
+      "company": "Startup Inc"
+    }
+  ]
+}

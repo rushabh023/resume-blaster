@@ -1,0 +1,683 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Resume Blaster — Zero-Cost Bulk Email Sender</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            surface: { DEFAULT: '#1e293b', light: '#f8fafc', card: '#0f172a', 'card-light': '#ffffff' }
+          }
+        }
+      }
+    };
+  </script>
+  <style>
+    .drop-zone.dragover { border-color: #3b82f6; background: rgba(59,130,246,0.1); }
+    .invalid-email { background: rgba(239,68,68,0.15); border-color: #ef4444; }
+    .step-num { width: 2rem; height: 2rem; }
+    textarea, input[type="text"], input[type="email"], input[type="password"], input[type="number"] {
+      transition: border-color 0.15s;
+    }
+    .preview-box { white-space: pre-wrap; word-break: break-word; }
+  </style>
+</head>
+<body class="bg-slate-900 text-slate-100 min-h-screen dark:bg-slate-900 dark:text-slate-100 transition-colors duration-200">
+
+  <!-- Header -->
+  <header class="border-b border-slate-700 bg-slate-800/80 backdrop-blur sticky top-0 z-50">
+    <div class="max-w-4xl mx-auto px-4 py-4 flex items-center justify-between">
+      <div>
+        <h1 class="text-xl font-bold text-white">📧 Resume Blaster</h1>
+        <p class="text-xs text-slate-400">Zero-cost bulk resume sender</p>
+      </div>
+      <div class="flex items-center gap-3 flex-wrap justify-end">
+        <a href="setup-guide.html" class="text-xs text-blue-400 hover:underline">📖 Setup Guide</a>
+        <span id="serverStatus" class="text-xs px-2 py-1 rounded-full border border-slate-600 text-slate-400">Server: checking…</span>
+        <button id="themeToggle" class="text-sm px-3 py-1.5 rounded-lg border border-slate-600 hover:bg-slate-700" title="Toggle theme">🌙</button>
+      </div>
+    </div>
+  </header>
+
+  <main class="max-w-4xl mx-auto px-4 py-8 space-y-8">
+
+    <!-- Step 1: Resume -->
+    <section class="bg-slate-800 rounded-xl border border-slate-700 p-6">
+      <div class="flex items-center gap-3 mb-4">
+        <span class="step-num flex items-center justify-center rounded-full bg-blue-600 text-white font-bold text-sm">1</span>
+        <h2 class="text-lg font-semibold">Upload Resume</h2>
+      </div>
+      <div id="dropZone" class="drop-zone border-2 border-dashed border-slate-600 rounded-xl p-10 text-center cursor-pointer hover:border-blue-500 transition-colors">
+        <p class="text-4xl mb-2">📄</p>
+        <p class="text-slate-300">Drag & drop your PDF here, or <span class="text-blue-400 underline">click to browse</span></p>
+        <p class="text-xs text-slate-500 mt-2">PDF only · stays in your browser, never uploaded to a server</p>
+        <input type="file" id="resumeInput" accept=".pdf,application/pdf" class="hidden" />
+      </div>
+      <div id="resumeInfo" class="hidden mt-4 flex items-center gap-3 p-3 bg-green-900/30 border border-green-700 rounded-lg">
+        <span class="text-green-400 text-xl">✓</span>
+        <div>
+          <p id="resumeFileName" class="font-medium text-green-300"></p>
+          <p id="resumeFileSize" class="text-xs text-slate-400"></p>
+        </div>
+        <button id="clearResume" class="ml-auto text-xs text-red-400 hover:text-red-300">Remove</button>
+      </div>
+    </section>
+
+    <!-- Step 2: Compose -->
+    <section class="bg-slate-800 rounded-xl border border-slate-700 p-6">
+      <div class="flex items-center justify-between mb-4">
+        <div class="flex items-center gap-3">
+          <span class="step-num flex items-center justify-center rounded-full bg-blue-600 text-white font-bold text-sm">2</span>
+          <h2 class="text-lg font-semibold">Compose Email</h2>
+        </div>
+        <div class="flex gap-2">
+          <select id="templateSelect" class="text-xs bg-slate-700 border border-slate-600 rounded px-2 py-1">
+            <option value="">Load template…</option>
+          </select>
+          <button id="saveTemplate" class="text-xs px-2 py-1 border border-slate-600 rounded hover:bg-slate-700">Save template</button>
+        </div>
+      </div>
+      <p class="text-xs text-slate-400 mb-3">Variables: <code class="bg-slate-700 px-1 rounded">{name}</code> <code class="bg-slate-700 px-1 rounded">{company}</code> <code class="bg-slate-700 px-1 rounded">{email}</code></p>
+      <div class="space-y-3">
+        <div>
+          <label class="block text-sm text-slate-400 mb-1">Subject</label>
+          <input type="text" id="emailSubject" value="Job Application — {name} interested in {company}" class="w-full bg-slate-900 border border-slate-600 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-500" />
+        </div>
+        <div>
+          <label class="block text-sm text-slate-400 mb-1">Body</label>
+          <textarea id="emailBody" rows="8" class="w-full bg-slate-900 border border-slate-600 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-500">Dear Hiring Manager at {company},
+
+I am writing to express my interest in opportunities at {company}. Please find my resume attached for your review.
+
+I would welcome the chance to discuss how my skills could contribute to your team.
+
+Best regards</textarea>
+        </div>
+      </div>
+      <div class="mt-4">
+        <p class="text-sm text-slate-400 mb-2">Live Preview <span class="text-xs">(using first recipient or sample data)</span></p>
+        <div id="emailPreview" class="preview-box bg-slate-900 border border-slate-600 rounded-lg p-4 text-sm text-slate-300"></div>
+      </div>
+    </section>
+
+    <!-- Step 3: Recipients -->
+    <section class="bg-slate-800 rounded-xl border border-slate-700 p-6">
+      <div class="flex items-center gap-3 mb-4">
+        <span class="step-num flex items-center justify-center rounded-full bg-blue-600 text-white font-bold text-sm">3</span>
+        <h2 class="text-lg font-semibold">Add Recipients</h2>
+      </div>
+      <p class="text-xs text-slate-400 mb-2">One email per line, comma-separated, or CSV: <code class="bg-slate-700 px-1 rounded">email, name, company</code></p>
+      <textarea id="recipientsInput" rows="6" placeholder="hr@acme.com, Jane Doe, Acme Corp&#10;recruiting@startup.io&#10;jobs@bigco.com, HR Team, BigCo" class="w-full bg-slate-900 border border-slate-600 rounded-lg px-3 py-2 text-sm font-mono focus:outline-none focus:border-blue-500"></textarea>
+      <div class="mt-3 flex flex-wrap items-center gap-3">
+        <span id="recipientCount" class="text-sm text-slate-400">0 valid recipients</span>
+        <span id="duplicateCount" class="hidden text-sm text-yellow-400"></span>
+        <span id="invalidCount" class="hidden text-sm text-red-400"></span>
+      </div>
+      <div id="invalidList" class="hidden mt-2 text-xs text-red-400 font-mono"></div>
+      <div id="recipientPreview" class="hidden mt-3 max-h-40 overflow-y-auto space-y-1"></div>
+    </section>
+
+    <!-- Step 4: Configure -->
+    <section class="bg-slate-800 rounded-xl border border-slate-700 p-6">
+      <div class="flex items-center gap-3 mb-4">
+        <span class="step-num flex items-center justify-center rounded-full bg-blue-600 text-white font-bold text-sm">4</span>
+        <h2 class="text-lg font-semibold">Configure Sender</h2>
+      </div>
+
+      <div class="space-y-3">
+        <div>
+          <label class="block text-sm text-slate-400 mb-1">Your Gmail address</label>
+          <input type="email" id="senderEmail" placeholder="you@gmail.com" class="w-full bg-slate-900 border border-slate-600 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-500" />
+        </div>
+
+        <div id="pythonConfig" class="space-y-3 border-t border-slate-700 pt-3">
+          <div class="flex items-center justify-between flex-wrap gap-2">
+            <p class="text-sm font-medium text-green-400">Gmail App Password</p>
+            <a href="setup-guide.html" class="text-xs text-blue-400 hover:underline">How to create? → Setup Guide with photos</a>
+          </div>
+          <div>
+            <label class="block text-xs text-slate-400 mb-1">App Password (16 characters — not your normal Gmail password)</label>
+            <input type="password" id="gmailAppPassword" placeholder="xxxx xxxx xxxx xxxx" class="w-full bg-slate-900 border border-slate-600 rounded-lg px-3 py-2 text-sm" />
+          </div>
+          <button id="exportConfig" class="w-full sm:w-auto px-4 py-2 border border-green-600 text-green-400 hover:bg-green-900/30 rounded-lg text-sm font-medium">⬇ Export config.json (backup)</button>
+          <p id="serverHint" class="text-xs text-yellow-400/90 hidden">⚠ Start the server first: double-click <code class="bg-slate-700 px-1 rounded">start.bat</code>, then open <code class="bg-slate-700 px-1 rounded">http://localhost:8765</code></p>
+        </div>
+
+        <div class="flex items-center gap-2 pt-2">
+          <input type="checkbox" id="rememberMe" checked class="rounded" />
+          <label for="rememberMe" class="text-sm text-slate-400">Remember settings in localStorage</label>
+        </div>
+      </div>
+    </section>
+
+    <!-- Step 5: Send -->
+    <section class="bg-slate-800 rounded-xl border border-slate-700 p-6">
+      <div class="flex items-center gap-3 mb-4">
+        <span class="step-num flex items-center justify-center rounded-full bg-blue-600 text-white font-bold text-sm">5</span>
+        <h2 class="text-lg font-semibold">Send</h2>
+      </div>
+
+      <div class="flex flex-wrap gap-3 mb-4">
+        <div>
+          <label class="block text-xs text-slate-400 mb-1">Delay between emails (seconds)</label>
+          <input type="number" id="sendDelay" value="1" min="1" max="60" class="w-24 bg-slate-900 border border-slate-600 rounded-lg px-3 py-2 text-sm" />
+        </div>
+      </div>
+
+      <div id="sendActions" class="flex flex-wrap gap-3">
+        <button id="testSendBtn" class="px-5 py-3 border border-blue-500 text-blue-400 rounded-xl hover:bg-blue-900/30 font-medium">🧪 Test Send (to yourself)</button>
+        <button id="sendAllBtn" class="px-8 py-3 bg-blue-600 hover:bg-blue-500 rounded-xl font-bold text-lg shadow-lg shadow-blue-900/50">🚀 Send to All</button>
+      </div>
+      <p class="text-xs text-slate-500 mt-2">Keep the <code class="bg-slate-700 px-1 rounded">start.bat</code> window open while sending.</p>
+
+      <!-- Progress -->
+      <div id="progressSection" class="hidden mt-6">
+        <div class="flex justify-between text-sm mb-2">
+          <span id="progressText">Sending 0 of 0…</span>
+          <span id="progressPercent">0%</span>
+        </div>
+        <div class="w-full bg-slate-700 rounded-full h-3 overflow-hidden">
+          <div id="progressBar" class="bg-blue-500 h-full rounded-full transition-all duration-300" style="width:0%"></div>
+        </div>
+        <div id="sendLog" class="mt-4 max-h-60 overflow-y-auto space-y-1 text-sm font-mono"></div>
+        <div id="sendSummary" class="hidden mt-4 p-4 rounded-lg border text-center font-semibold"></div>
+      </div>
+    </section>
+
+  </main>
+
+  <footer class="max-w-4xl mx-auto px-4 py-6 text-center text-xs text-slate-500">
+    All data stays local. Resume never leaves your device except when sent via your own Gmail.
+  </footer>
+
+<script>
+(function () {
+  'use strict';
+
+  // ── State ──
+  let resumeBase64 = null;
+  let resumeFileName = null;
+  let resumeFileSize = 0;
+  let isSending = false;
+
+  const STORAGE_KEY = 'resumeBlasterSettings';
+  const TEMPLATES_KEY = 'resumeBlasterTemplates';
+  const SERVER_URL = 'http://localhost:8765';
+  let serverOnline = false;
+
+  // ── DOM refs ──
+  const $ = (id) => document.getElementById(id);
+
+  // ── Helpers ──
+  function formatBytes(bytes) {
+    if (bytes < 1024) return bytes + ' B';
+    if (bytes < 1048576) return (bytes / 1024).toFixed(1) + ' KB';
+    return (bytes / 1048576).toFixed(1) + ' MB';
+  }
+
+  function isValidEmail(email) {
+    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim());
+  }
+
+  function interpolate(template, vars) {
+    return template
+      .replace(/\{name\}/gi, vars.name || 'Hiring Manager')
+      .replace(/\{company\}/gi, vars.company || 'your company')
+      .replace(/\{email\}/gi, vars.email || '');
+  }
+
+  function parseRecipients(text) {
+    const lines = text.split(/\r?\n/).filter(l => l.trim());
+    const recipients = [];
+    const invalid = [];
+    const seen = new Set();
+
+    for (const line of lines) {
+      const trimmed = line.trim();
+      if (!trimmed) continue;
+
+      let email, name = '', company = '';
+
+      if (trimmed.includes(',')) {
+        const parts = trimmed.split(',').map(p => p.trim());
+        email = parts[0];
+        name = parts[1] || '';
+        company = parts[2] || '';
+      } else if (trimmed.includes(';')) {
+        const parts = trimmed.split(';').map(p => p.trim());
+        email = parts[0];
+        name = parts[1] || '';
+        company = parts[2] || '';
+      } else {
+        email = trimmed;
+      }
+
+      if (!isValidEmail(email)) {
+        invalid.push(trimmed);
+        continue;
+      }
+
+      const key = email.toLowerCase();
+      if (seen.has(key)) continue;
+      seen.add(key);
+
+      recipients.push({ email: email.trim(), name, company });
+    }
+
+    const allEmails = lines.flatMap(l => {
+      const e = l.split(/[,;]/)[0].trim();
+      return isValidEmail(e) ? [e.toLowerCase()] : [];
+    });
+    const dupCount = allEmails.length - new Set(allEmails).size;
+
+    return { recipients, invalid, dupCount };
+  }
+
+  function getRecipients() {
+    return parseRecipients($('recipientsInput').value);
+  }
+
+  function sleep(ms) {
+    return new Promise(r => setTimeout(r, ms));
+  }
+
+  // ── Theme ──
+  function applyTheme(dark) {
+    document.documentElement.classList.toggle('dark', dark);
+    document.body.classList.toggle('bg-slate-900', dark);
+    document.body.classList.toggle('text-slate-100', dark);
+    document.body.classList.toggle('bg-slate-50', !dark);
+    document.body.classList.toggle('text-slate-900', !dark);
+    $('themeToggle').textContent = dark ? '🌙' : '☀️';
+    document.querySelectorAll('section').forEach(s => {
+      s.classList.toggle('bg-slate-800', dark);
+      s.classList.toggle('bg-white', !dark);
+      s.classList.toggle('border-slate-700', dark);
+      s.classList.toggle('border-slate-200', !dark);
+    });
+  }
+
+  $('themeToggle').addEventListener('click', () => {
+    const dark = !document.documentElement.classList.contains('dark');
+    applyTheme(dark);
+    if ($('rememberMe').checked) saveSettings();
+  });
+
+  // ── Local server status ──
+  async function checkServer() {
+    try {
+      const res = await fetch(SERVER_URL + '/api/health', { signal: AbortSignal.timeout(2000) });
+      serverOnline = res.ok;
+    } catch (_) {
+      serverOnline = false;
+    }
+    updateServerUI();
+  }
+
+  function updateServerUI() {
+    const el = $('serverStatus');
+    const hint = $('serverHint');
+    if (serverOnline) {
+      el.textContent = '🟢 Server connected';
+      el.className = 'text-xs px-2 py-1 rounded-full border border-green-700 text-green-400 bg-green-900/20';
+      hint.classList.add('hidden');
+    } else {
+      el.textContent = '🔴 Server offline';
+      el.className = 'text-xs px-2 py-1 rounded-full border border-red-700 text-red-400 bg-red-900/20';
+      hint.classList.remove('hidden');
+    }
+  }
+
+  setInterval(checkServer, 5000);
+
+  // ── Resume upload ──
+  const dropZone = $('dropZone');
+  const resumeInput = $('resumeInput');
+
+  dropZone.addEventListener('click', () => resumeInput.click());
+  dropZone.addEventListener('dragover', (e) => { e.preventDefault(); dropZone.classList.add('dragover'); });
+  dropZone.addEventListener('dragleave', () => dropZone.classList.remove('dragover'));
+  dropZone.addEventListener('drop', (e) => {
+    e.preventDefault();
+    dropZone.classList.remove('dragover');
+    if (e.dataTransfer.files[0]) handleResumeFile(e.dataTransfer.files[0]);
+  });
+  resumeInput.addEventListener('change', () => {
+    if (resumeInput.files[0]) handleResumeFile(resumeInput.files[0]);
+  });
+
+  function handleResumeFile(file) {
+    if (file.type !== 'application/pdf' && !file.name.toLowerCase().endsWith('.pdf')) {
+      alert('Please upload a PDF file.');
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const dataUrl = e.target.result;
+      resumeBase64 = dataUrl.split(',')[1];
+      resumeFileName = file.name;
+      resumeFileSize = file.size;
+      $('resumeFileName').textContent = file.name;
+      $('resumeFileSize').textContent = formatBytes(file.size);
+      $('resumeInfo').classList.remove('hidden');
+    };
+    reader.readAsDataURL(file);
+  }
+
+  $('clearResume').addEventListener('click', () => {
+    resumeBase64 = null;
+    resumeFileName = null;
+    resumeFileSize = 0;
+    resumeInput.value = '';
+    $('resumeInfo').classList.add('hidden');
+  });
+
+  // ── Preview ──
+  function updatePreview() {
+    const { recipients } = getRecipients();
+    const sample = recipients[0] || { email: 'hr@example.com', name: 'Jane Doe', company: 'Acme Corp' };
+    const subject = interpolate($('emailSubject').value, sample);
+    const body = interpolate($('emailBody').value, sample);
+    $('emailPreview').innerHTML = `<strong>Subject:</strong> ${escapeHtml(subject)}<br><br>${escapeHtml(body)}`;
+  }
+
+  function escapeHtml(str) {
+    return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+
+  ['emailSubject', 'emailBody', 'recipientsInput'].forEach(id => {
+    $(id).addEventListener('input', () => { updatePreview(); updateRecipientUI(); });
+  });
+
+  function updateRecipientUI() {
+    const { recipients, invalid, dupCount } = getRecipients();
+    $('recipientCount').textContent = `${recipients.length} valid recipient${recipients.length !== 1 ? 's' : ''}`;
+
+    if (dupCount > 0) {
+      $('duplicateCount').classList.remove('hidden');
+      $('duplicateCount').textContent = `${dupCount} duplicate${dupCount !== 1 ? 's' : ''} removed`;
+    } else {
+      $('duplicateCount').classList.add('hidden');
+    }
+
+    if (invalid.length > 0) {
+      $('invalidCount').classList.remove('hidden');
+      $('invalidCount').textContent = `${invalid.length} invalid`;
+      $('invalidList').classList.remove('hidden');
+      $('invalidList').innerHTML = invalid.map(i => `<div class="invalid-email inline-block px-2 py-0.5 rounded mr-1 mb-1">${escapeHtml(i)}</div>`).join('');
+    } else {
+      $('invalidCount').classList.add('hidden');
+      $('invalidList').classList.add('hidden');
+    }
+
+    const preview = $('recipientPreview');
+    if (recipients.length > 0) {
+      preview.classList.remove('hidden');
+      preview.innerHTML = recipients.slice(0, 20).map(r =>
+        `<div class="text-xs font-mono text-slate-400">${escapeHtml(r.email)}${r.name ? ' · ' + escapeHtml(r.name) : ''}${r.company ? ' · ' + escapeHtml(r.company) : ''}</div>`
+      ).join('') + (recipients.length > 20 ? `<div class="text-xs text-slate-500">…and ${recipients.length - 20} more</div>` : '');
+    } else {
+      preview.classList.add('hidden');
+    }
+  }
+
+  // ── Template library ──
+  function loadTemplateList() {
+    const templates = JSON.parse(localStorage.getItem(TEMPLATES_KEY) || '[]');
+    const sel = $('templateSelect');
+    sel.innerHTML = '<option value="">Load template…</option>';
+    templates.forEach((t, i) => {
+      const opt = document.createElement('option');
+      opt.value = i;
+      opt.textContent = t.name;
+      sel.appendChild(opt);
+    });
+  }
+
+  $('saveTemplate').addEventListener('click', () => {
+    const name = prompt('Template name:');
+    if (!name) return;
+    const templates = JSON.parse(localStorage.getItem(TEMPLATES_KEY) || '[]');
+    templates.push({ name, subject: $('emailSubject').value, body: $('emailBody').value });
+    localStorage.setItem(TEMPLATES_KEY, JSON.stringify(templates));
+    loadTemplateList();
+  });
+
+  $('templateSelect').addEventListener('change', () => {
+    const idx = $('templateSelect').value;
+    if (idx === '') return;
+    const templates = JSON.parse(localStorage.getItem(TEMPLATES_KEY) || '[]');
+    const t = templates[parseInt(idx)];
+    if (t) {
+      $('emailSubject').value = t.subject;
+      $('emailBody').value = t.body;
+      updatePreview();
+    }
+    $('templateSelect').value = '';
+  });
+
+  // ── Settings persistence ──
+  function saveSettings() {
+    if (!$('rememberMe').checked) return;
+    const data = {
+      senderEmail: $('senderEmail').value,
+      gmailAppPassword: $('gmailAppPassword').value,
+      sendDelay: $('sendDelay').value,
+      emailSubject: $('emailSubject').value,
+      emailBody: $('emailBody').value,
+      recipientsInput: $('recipientsInput').value,
+      darkTheme: document.documentElement.classList.contains('dark')
+    };
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+  }
+
+  function loadSettings() {
+    try {
+      const data = JSON.parse(localStorage.getItem(STORAGE_KEY));
+      if (!data) return;
+      if (data.senderEmail) $('senderEmail').value = data.senderEmail;
+      if (data.gmailAppPassword) $('gmailAppPassword').value = data.gmailAppPassword;
+      if (data.sendDelay) $('sendDelay').value = data.sendDelay;
+      if (data.emailSubject) $('emailSubject').value = data.emailSubject;
+      if (data.emailBody) $('emailBody').value = data.emailBody;
+      if (data.recipientsInput) $('recipientsInput').value = data.recipientsInput;
+      if (data.darkTheme === false) applyTheme(false);
+    } catch (_) {}
+  }
+
+  ['senderEmail','gmailAppPassword','sendDelay'].forEach(id => {
+    $(id).addEventListener('change', saveSettings);
+    $(id).addEventListener('input', saveSettings);
+  });
+
+  function buildConfig(recipients) {
+    return {
+      sender: {
+        email: $('senderEmail').value.trim(),
+        app_password: $('gmailAppPassword').value.replace(/\s/g, '')
+      },
+      subject: $('emailSubject').value,
+      body: $('emailBody').value,
+      delay_seconds: parseInt($('sendDelay').value) || 1,
+      resume: {
+        filename: resumeFileName || 'resume.pdf',
+        base64: resumeBase64
+      },
+      recipients: recipients
+    };
+  }
+
+  // ── Export config.json (Mode B backup) ──
+  $('exportConfig').addEventListener('click', () => {
+    const { recipients } = getRecipients();
+    if (!resumeBase64) { alert('Please upload a resume PDF first.'); return; }
+    if (recipients.length === 0) { alert('Please add at least one valid recipient.'); return; }
+    if (!$('senderEmail').value) { alert('Please enter your Gmail address.'); return; }
+    if (!$('gmailAppPassword').value) { alert('Please enter your Gmail App Password.'); return; }
+
+    const config = buildConfig(recipients);
+    const blob = new Blob([JSON.stringify(config, null, 2)], { type: 'application/json' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = 'config.json';
+    a.click();
+    URL.revokeObjectURL(a.href);
+    saveSettings();
+  });
+
+  // ── Validation before send ──
+  function validateCommon() {
+    if (!resumeBase64) { alert('Please upload your resume PDF.'); return false; }
+    if (!$('senderEmail').value.trim()) { alert('Please enter your Gmail address.'); return false; }
+    return true;
+  }
+
+  function validateBeforeSend(isTest) {
+    if (!validateCommon()) return false;
+    if (!$('gmailAppPassword').value) { alert('Please enter your Gmail App Password.'); return false; }
+    if (!serverOnline) {
+      alert('Local server is not running.\n\nDouble-click start.bat or run:\npy server.py\n\nThen open http://localhost:8765');
+      return false;
+    }
+    const { recipients } = getRecipients();
+    if (!isTest && recipients.length === 0) { alert('Please add at least one valid recipient.'); return false; }
+    return { recipients };
+  }
+
+  function logStatus(email, success, errorMsg) {
+    const log = $('sendLog');
+    const div = document.createElement('div');
+    div.className = success ? 'text-green-400' : 'text-red-400';
+    div.textContent = success
+      ? `✅ ${email} — sent`
+      : `❌ ${email} — failed: ${errorMsg || 'Unknown error'}`;
+    log.appendChild(div);
+    log.scrollTop = log.scrollHeight;
+  }
+
+  function updateProgress(current, total) {
+    const pct = total ? Math.round((current / total) * 100) : 0;
+    $('progressText').textContent = `Sending ${current} of ${total}…`;
+    $('progressPercent').textContent = pct + '%';
+    $('progressBar').style.width = pct + '%';
+  }
+
+  function showSummary(sent, failed, isTest) {
+    const summary = $('sendSummary');
+    summary.classList.remove('hidden');
+    summary.className = `mt-4 p-4 rounded-lg border text-center font-semibold ${failed === 0 ? 'bg-green-900/30 border-green-700 text-green-300' : 'bg-yellow-900/30 border-yellow-700 text-yellow-300'}`;
+    summary.textContent = isTest
+      ? (sent ? '✓ Test email sent successfully!' : '✗ Test send failed — check Gmail App Password.')
+      : `${sent} sent, ${failed} failed`;
+  }
+
+  function beginSendUI() {
+    isSending = true;
+    $('sendAllBtn').disabled = true;
+    $('testSendBtn').disabled = true;
+    $('progressSection').classList.remove('hidden');
+    $('sendLog').innerHTML = '';
+    $('sendSummary').classList.add('hidden');
+  }
+
+  function endSendUI() {
+    isSending = false;
+    $('sendAllBtn').disabled = false;
+    $('testSendBtn').disabled = false;
+    saveSettings();
+  }
+
+  async function runBulkSend(recipients, isTest) {
+    beginSendUI();
+
+    const config = buildConfig(recipients);
+    config.is_test = isTest;
+
+    let jobId;
+    try {
+      const res = await fetch(SERVER_URL + '/api/send', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(config)
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Server error');
+      jobId = data.job_id;
+    } catch (err) {
+      logStatus('Server', false, err.message);
+      showSummary(0, 1, isTest);
+      endSendUI();
+      return;
+    }
+
+    const total = isTest ? 1 : recipients.length;
+    updateProgress(0, total);
+    let seenLogs = 0;
+
+    while (true) {
+      await sleep(500);
+      try {
+        const res = await fetch(SERVER_URL + '/api/status?job_id=' + encodeURIComponent(jobId));
+        const job = await res.json();
+        if (!res.ok) throw new Error(job.error || 'Status error');
+
+        if (job.error && job.done) {
+          logStatus('Auth', false, job.error);
+          showSummary(0, 1, isTest);
+          endSendUI();
+          return;
+        }
+
+        updateProgress(job.current || 0, job.total || total);
+
+        for (let i = seenLogs; i < (job.logs || []).length; i++) {
+          const entry = job.logs[i];
+          logStatus(entry.email, entry.success, entry.error);
+        }
+        seenLogs = (job.logs || []).length;
+
+        if (job.done) {
+          showSummary(job.sent || 0, job.failed || 0, isTest);
+          endSendUI();
+          return;
+        }
+      } catch (err) {
+        logStatus('Poll', false, err.message);
+        showSummary(0, 1, isTest);
+        endSendUI();
+        return;
+      }
+    }
+  }
+
+  function handleSend(isTest) {
+    const result = validateBeforeSend(isTest);
+    if (!result) return;
+
+    const { recipients } = result;
+    const msg = isTest
+      ? `Send a test email to ${$('senderEmail').value}?`
+      : `Send resume to ${recipients.length} recipient${recipients.length !== 1 ? 's' : ''}?`;
+    if (!confirm(msg)) return;
+
+    runBulkSend(recipients, isTest);
+  }
+
+  $('testSendBtn').addEventListener('click', () => handleSend(true));
+  $('sendAllBtn').addEventListener('click', () => handleSend(false));
+
+  // ── Init ──
+  loadSettings();
+  loadTemplateList();
+  updatePreview();
+  updateRecipientUI();
+  checkServer();
+})();
+</script>
+</body>
+</html>
